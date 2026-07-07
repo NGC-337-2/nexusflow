@@ -1,0 +1,231 @@
+    1  clear
+    2  sudo apt-get install -y gnupg software-properties-common
+    3  wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    4  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+    5  sudo apt update && sudo apt install terraform
+    6  curl -L https://istio.io/downloadIstio | sh -
+    7  export PATH="$PWD/istio-1.20.0/bin:$PATH"  # adjust version
+    8  kubectl
+    9  helm
+   10  aws configure
+   11  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+   12  unzip awscliv2.zip && sudo ./aws/install
+   13  sudo apt install unzip
+   14  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+   15  curl -L https://istio.io/downloadIstio | sh -
+   16  export PATH="$PWD/istio-1.20.0/bin:$PATH"
+   17  clear
+   18  aws --version
+   19  sudo apt install awscli
+   20  sudo snap install aws-cli
+   21  awscli
+   22  aws
+   23  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+   24  unzip awscliv2.zip && sudo ./aws/install
+   25  aws
+   26  aws --version
+   27  clear
+   28  kubectl -v
+   29  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+   30  sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+   31  kubectl
+   32  kubectl --version
+   33  kubectl -v
+   34  kubectl -version
+   35  kubectl --version
+   36  clear
+   37  helm
+   38  clear
+   39  terraform
+   40  clear
+   41  istio
+   42  lstio
+   43  istio
+   44  curl -L https://istio.io/downloadIstio | sh -
+   45  export PATH="$PATH:/home/nikk-linux/istio-1.29.2/bin"
+   46  istio
+   47  clear
+   48  istio --version
+   49  istioctl version
+   50  istioctl --version
+   51  istioctl
+   52  clear
+   53  aws sts get-caller-identity
+   54  chmod +x kubectl
+   55  gnupg 
+   56  mkdir -p ~/eks-gitops-istio/terraform
+   57  cd ~/eks-gitops-istio/terraform
+   58  vi main.tf
+   59  vi variables.tf
+   60  vi terraform.tfars
+   61  vi vpc.tf
+   62  cat > eks.tf << 'EOF'
+   63  module "eks" {
+   64    source  = "terraform-aws-modules/eks/aws"
+   65    version = "~> 20.0"
+   66    cluster_name    = var.cluster_name
+   67    cluster_version = "1.29"
+   68    vpc_id     = module.vpc.vpc_id
+   69    subnet_ids = module.vpc.private_subnets
+   70    cluster_endpoint_public_access = true
+   71    eks_managed_node_groups = {
+   72      default = {
+   73        min_size       = 1
+   74        max_size       = 3
+   75        desired_size   = 2
+   76        instance_types = [var.node_instance_type]
+   77        capacity_type  = "SPOT"
+   78      }
+   79    }
+   80    enable_irsa = true
+   81  }
+   82  EOF
+   83  vi eks.tf
+   84  code .
+   85  cat > outputs.tf << 'EOF'
+   86  output "cluster_name" {
+   87    value = module.eks.cluster_name
+   88  }
+   89  output "cluster_endpoint" {
+   90    value = module.eks.cluster_endpoint
+   91  }
+   92  output "configure_kubectl" {
+   93    value = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
+   94  }
+   95  EOF
+   96  cat > outputs.tf << 'EOF'
+   97  output "cluster_name" {
+   98    value = module.eks.cluster_name
+   99  }
+  100  output "cluster_endpoint" {
+  101    value = module.eks.cluster_endpoint
+  102  }
+  103  output "configure_kubectl" {
+  104    value = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
+  105  }
+  106  EOF
+  107  ls
+  108  path
+  109  clear
+  110  ls
+  111  cd  eks-gitops-istio
+  112  ls
+  113  aws configure
+  114  aws sts get-caller-identity
+  115  terraform init
+  116  ls
+  117  cd terraform
+  118  terraform init
+  119  terraform validate
+  120  terraform plan -out=plan.tfplan
+  121  terraform apply plan.tfplan
+  122  rm plan.tfplan
+  123  terraform plan -out=plan.tfplan
+  124  terraform apply plan.tfplan
+  125  clear
+  126  terraform plan -out=plan.tfplan
+  127  terraform apply plan.tfplan
+  128  clear
+  129  terraform plan -out=plan.tfplan
+  130  terraform apply plan.tfplan
+  131  clear
+  132  terraform plan -out=plan.tfplan
+  133  terraform apply plan.tfplan
+  134  kubectl get nodes
+  135  aws eks update-kubeconfig --name eventyx-eks --region ap-south-1
+  136  kubectl get nodes
+  137  aws sts get-caller-identity
+  138  aws configure get region
+  139  aws eks update-kubeconfig --name eventyx-eks --region ap-south-1
+  140  kubectl config current-context
+  141  aws eks get-token --cluster-name eventyx-eks --region ap-south-1 --output json
+  142  kubectl get nodes
+  143  Manually Test Token Generation
+  144  aws eks list-access-entries --cluster-name eventyx-eks --region ap-south-1
+  145  rm -rf ~/.kube/cache
+  146  kubectl get nodes
+  147  aws eks list-access-entries --cluster-name eventyx-eks --region ap-south-1
+  148  YOUR_ARN=$(aws sts get-caller-identity --query "Arn" --output text)
+  149  aws eks create-access-entry   --cluster-name eventyx-eks   --principal-arn "$YOUR_ARN"   --type STANDARD   --region ap-south-1
+  150  aws eks associate-access-policy   --cluster-name eventyx-eks   --principal-arn "$YOUR_ARN"   --access-scope type=cluster   --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy   --region ap-south-1
+  151  kubectl get nodes
+  152  kubectl get pods -n kube-system
+  153  helm repo add eks https://aws.github.io/eks-charts
+  154  helm repo update
+  155  curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.0/docs/install/iam_policy.json
+  156  aws iam create-policy   --policy-name AWSLoadBalancerControllerIAMPolicy   --policy-document file://iam_policy.json
+  157  curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.0/docs/install/iam_policy.json
+  158  eksctl create iamserviceaccount   --cluster=eventyx-eks   --namespace=kube-system   --name=aws-load-balancer-controller   --attach-policy-arn=arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy/AWSLoadBalancerControllerIAMPolicy   --approve   --region=ap-south-1
+  159  ekstl
+  160  eksctl
+  161  curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+  162  sudo mv /tmp/eksctl /usr/local/bin
+  163  eksctl version
+  164  eksctl create iamserviceaccount   --cluster=eventyx-eks   --namespace=kube-system   --name=aws-load-balancer-controller   --attach-policy-arn=arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy/AWSLoadBalancerControllerIAMPolicy   --approve   --region=ap-south-1
+  165  aws iam attach-user-policy   --user-name nikhil.ap@lead.ac.in   --policy-arn arn:aws:iam::991524241826:policy/NexusFlow-DevOps-Policy
+  166  eksctl create iamserviceaccount   --cluster=eventyx-eks   --namespace=kube-system   --name=aws-load-balancer-controller   --attach-policy-arn=arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy/AWSLoadBalancerControllerIAMPolicy   --approve   --region=ap-south-1
+  167  helm install aws-load-balancer-controller eks/aws-load-balancer-controller   -n kube-system   --set clusterName=eventyx-eks   --set serviceAccount.create=false   --set serviceAccount.name=aws-load-balancer-controller
+  168  kubectl get deployment -n kube-system aws-load-balancer-controller
+  169  kubectl logs -n kube-system deployment/aws-load-balancer-controller | head -20
+  170  kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+  171  kubectl patch deployment metrics-server -n kube-system --type='json'   -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
+  172  kubectl get deployment -n kube-system metrics-server
+  173  kubectl top nodes
+  174  cat > external-dns-policy.json << 'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ChangeResourceRecordSets"
+      ],
+      "Resource": "arn:aws:route53:::hostedzone/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ListHostedZones",
+        "route53:ListResourceRecordSets"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+
+  175  aws iam create-policy   --policy-name ExternalDNSIAMPolicy   --policy-document file://external-dns-policy.json
+  176  eksctl create iamserviceaccount   --cluster=eventyx-eks   --namespace=kube-system   --name=external-dns   --attach-policy-arn=arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy/ExternalDNSIAMPolicy   --approve   --region=ap-south-1
+  177  helm repo add bitnami https://charts.bitnami.com/bitnami
+  178  helm repo update'
+
+
+  179  helm repo add bitnami https://charts.bitnami.com/bitnami
+  180  helm repo update
+  181  helm install external-dns bitnami/external-dns   -n kube-system   --set provider=aws   --set aws.zoneType=public   --set txtPrefix=external-dns-   --set policy=upsert-only   --set serviceAccount.create=false   --set serviceAccount.name=external-dns
+  182  kubectl get deployment -n kube-system external-dns
+  183  kubectl logs -n kube-system deployment/external-dns | head -10
+  184  kubectl get deployment -n kube-system external-dns
+  185  kubectl logs -n kube-system deployment/external-dns | head -10
+  186  kubectl get deployment external-dns -n kube-system -o jsonpath='{.spec.template.spec.containers[*].name}'
+  187  # Usually outputs: external-dns
+  188  kubectl get deployment external-dns -n kube-system -o jsonpath='{.spec.template.spec.containers[0].image}'
+  189  kubectl set image deployment/external-dns   external-dns=registry.k8s.io/external-dns/external-dns:v0.14.0   -n kube-system
+  190  kubectl rollout status deployment/external-dns -n kube-system --timeout=60s
+  191  kubectl get pods -n kube-system -l app.kubernetes.io/name=external-dns
+  192  kubectl logs -n kube-system deployment/external-dns --tail=5
+  193  helm upgrade external-dns bitnami/external-dns -n kube-system   --set image.registry=registry.k8s.io   --set image.repository=external-dns/external-dns   --set image.tag=v0.14.0   --set provider=aws   --set aws.zoneType=public   --set txtPrefix=external-dns-   --set policy=upsert-only
+  194  # 1. Check all add-ons are running
+  195  kubectl get pods -n kube-system | grep -E "aws-load-balancer|metrics-server|external-dns"
+  196  # 2. Verify metrics available
+  197  kubectl get nodes
+  198  kubectl top nodes
+  199  kubectl top pods -n kube-system
+  200  # 3. Check IRSA service accounts
+  201  kubectl get serviceaccount -n kube-system aws-load-balancer-controller
+  202  kubectl get serviceaccount -n kube-system external-dns
+  203  # 4. Describe one pod to see IRSA annotations
+  204  kubectl describe pod -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller | grep -i role
+  205  history >> phase3.txt
+
+  

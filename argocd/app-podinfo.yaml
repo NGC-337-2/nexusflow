@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: podinfo
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/NGC-337-2/nexusflow.git
+    targetRevision: main
+    path: apps/podinfo/overlays/dev
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: podinfo
+
+  syncPolicy:
+    automated:
+      prune: true        # Delete resources removed from Git
+      selfHeal: true     # Auto-sync if cluster drifts from Git
+    syncOptions:
+    - CreateNamespace=true
+
+  # Let the HPA / kustomize overlay own the replica count without ArgoCD fighting it
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas

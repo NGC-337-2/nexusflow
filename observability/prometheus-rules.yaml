@@ -1,0 +1,109 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: custom-alerts
+  namespace: monitoring
+  labels:
+    # This label makes the kube-prometheus-stack Prometheus pick the rule up
+    release: prometheus
+spec:
+  groups:
+  # ---------------------------------------------------------------------------
+  # Group 1: error-rate
+  # ---------------------------------------------------------------------------
+  - name: error-rate.rules
+    interval: 30s
+    rules:
+    - alert: HighIstioErrorRate
+      expr: |
+        sum(rate(istio_requests_total{response_code=~"5.."}[5m]))
+          / sum(rate(istio_requests_total[5m])) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High mesh-wide 5xx error rate (>5%)"
+        description: "More than 5% of mesh requests are returning 5xx for 5m."
+    - alert: HighProductpageErrorRate
+      expr: |
+        sum(rate(istio_requests_total{destination_service=~"productpage.*",response_code=~"5.."}[5m]))
+          / sum(rate(istio_requests_total{destination_service=~"productpage.*"}[5m])) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "productpage 5xx error rate above 10%"
+        description: "productpage is serving >10% 5xx responses for 5m."
+    - alert: ElevatedClientErrors
+      expr: |
+        sum(rate(istio_requests_total{response_code=~"4.."}[5m]))
+          / sum(rate(istio_requests_total[5m])) > 0.25
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Elevated 4xx client-error rate (>25%)"
+        description: "More than 25% of mesh requests are 4xx for 10m."
+
+  # ---------------------------------------------------------------------------
+  # Group 2: latency
+  # ---------------------------------------------------------------------------
+  - name: latency.rules
+    interval: 30s
+    rules:
+    - alert: HighRequestLatencyP99
+      expr: |
+        histogram_quantile(0.99,
+          sum(rate(istio_request_duration_milliseconds_bucket[5m])) by (le, destination_service)
+        ) > 1000
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "p99 request latency above 1s"
+        description: "p99 latency for {{ $labels.destination_service }} exceeded 1000ms for 5m."
+    - alert: HighRequestLatencyP50
+      expr: |
+        histogram_quantile(0.50,
+          sum(rate(istio_request_duration_milliseconds_bucket[5m])) by (le, destination_service)
+        ) > 300
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "p50 request latency above 300ms"
+        description: "Median latency for {{ $labels.destination_service }} exceeded 300ms for 10m."
+
+  # ---------------------------------------------------------------------------
+  # Group 3: resource-saturation
+  # ---------------------------------------------------------------------------
+  - name: resource-saturation.rules
+    interval: 30s
+    rules:
+    - alert: HighMemoryUsage
+      expr: |
+        (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.9
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container memory usage above 90%"
+        description: "{{ $labels.pod }} is using >90% of its memory limit for 5m."
+    - alert: HighCpuUsage
+      expr: |
+        sum(rate(container_cpu_usage_seconds_total{container!=""}[5m])) by (pod)
+          / sum(kube_pod_container_resource_limits{resource="cpu"}) by (pod) > 0.9
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container CPU usage above 90% of limit"
+        description: "{{ $labels.pod }} is using >90% of its CPU limit for 5m."
+    - alert: PodCrashLooping
+      expr: rate(kube_pod_container_status_restarts_total[15m]) > 0.1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod is crash looping"
+        description: "{{ $labels.pod }} has restarted repeatedly over the last 15m."

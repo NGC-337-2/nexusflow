@@ -17,7 +17,7 @@ module "eks" {
       desired_size   = 2
       instance_types = [var.node_instance_type]
       capacity_type  = "SPOT"
-      ami_type       = "AL2023_x86_64_STANDARD" 
+      ami_type       = "AL2023_x86_64_STANDARD"
     }
   }
 

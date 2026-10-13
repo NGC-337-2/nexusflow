@@ -1,0 +1,49 @@
+# Values for the kube-prometheus-stack Helm chart (Prometheus + Grafana + Alertmanager).
+# Install:
+#   helm install prometheus prometheus-community/kube-prometheus-stack \
+#     -n monitoring --create-namespace -f observability/values-prometheus.yaml
+
+prometheus:
+  prometheusSpec:
+    retention: 24h
+    # Pick up PrometheusRule / ServiceMonitor objects from all namespaces,
+    # not only those with the chart's release label.
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+grafana:
+  adminPassword: admin123
+  defaultDashboardsEnabled: true
+  # Dashboards auto-imported on startup (Kubernetes cluster + Istio mesh)
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+  dashboards:
+    default:
+      kubernetes-cluster:
+        gnetId: 1860
+        revision: 37
+        datasource: Prometheus
+      istio-mesh:
+        gnetId: 13105
+        revision: 1
+        datasource: Prometheus
+
+alertmanager:
+  enabled: true

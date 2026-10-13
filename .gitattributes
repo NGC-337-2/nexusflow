@@ -1,0 +1,16 @@
+# Normalize line endings: store as LF, and keep LF in the working tree too.
+# Prevents Windows (core.autocrlf=true) from rewriting shell scripts to CRLF,
+# which would break them when run from WSL/Linux.
+* text=auto eol=lf
+
+*.sh      text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.tf      text eol=lf
+*.tfvars  text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+
+*.png binary
+*.jpg binary
+*.tgz binary

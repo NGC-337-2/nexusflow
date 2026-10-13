@@ -1,0 +1,15 @@
+1. Get the application URL by running these commands:
+{{- if eq .Values.service.type "LoadBalancer" }}
+  kubectl get svc {{ .Values.app.name }} -n {{ .Values.namespace }}
+  export SERVICE_IP=$(kubectl get svc {{ .Values.app.name }} -n {{ .Values.namespace }} -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  echo http://$SERVICE_IP:{{ .Values.service.port }}
+{{- else }}
+  kubectl port-forward -n {{ .Values.namespace }} svc/{{ .Values.app.name }} 8080:{{ .Values.service.port }}
+  echo http://localhost:8080
+{{- end }}
+
+2. Watch deployment progress:
+  kubectl rollout status deployment/{{ .Values.app.name }} -n {{ .Values.namespace }}
+
+3. View logs:
+  kubectl logs -f -n {{ .Values.namespace }} -l app={{ .Values.app.name }}

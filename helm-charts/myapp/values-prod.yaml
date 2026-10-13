@@ -1,0 +1,21 @@
+app:
+  replicaCount: 3
+
+image:
+  tag: "6.5.0"
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 128Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+namespace: myapp-prod

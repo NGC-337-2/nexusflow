@@ -1,0 +1,30 @@
+# Application settings
+app:
+  name: myapp
+  replicaCount: 2
+
+image:
+  repository: stefanprodan/podinfo
+  tag: "6.5.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 9898
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+namespace: myapp-prod

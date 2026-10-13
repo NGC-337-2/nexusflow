@@ -1,0 +1,26 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Helm
+*.tgz
+
+# Local / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Secrets (never commit)
+*.pem
+*.key
+.env

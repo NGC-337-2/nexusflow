@@ -1,0 +1,21 @@
+app:
+  replicaCount: 2
+
+image:
+  tag: "6.5.0"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 75
+
+namespace: myapp-staging

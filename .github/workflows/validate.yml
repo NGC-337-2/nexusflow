@@ -1,0 +1,74 @@
+name: Validate Infrastructure
+
+on: [push, pull_request]
+
+jobs:
+  # 1 — Terraform fmt + init + validate
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform Format Check
+        run: terraform -chdir=terraform fmt -check -recursive
+      - name: Terraform Init
+        run: terraform -chdir=terraform init -backend=false
+      - name: Terraform Validate
+        run: terraform -chdir=terraform validate
+
+  # 2 — Helm lint across all three environments (dev/staging/prod)
+  helm-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, staging, prod]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Helm Lint (${{ matrix.env }})
+        run: helm lint helm-charts/myapp -f helm-charts/myapp/values-${{ matrix.env }}.yaml
+
+  # 3 — Kubeval: schema-validate rendered Helm + Kustomize manifests
+  kubeval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Install kubeconform
+        run: |
+          curl -sSLo kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform.tar.gz && sudo mv kubeconform /usr/local/bin/
+      - name: Validate Helm-rendered manifests
+        run: |
+          helm template myapp helm-charts/myapp -f helm-charts/myapp/values-prod.yaml \
+            | kubeconform -ignore-missing-schemas -strict -summary
+      - name: Validate Kustomize overlay
+        run: |
+          kubectl kustomize apps/podinfo/overlays/dev \
+            | kubeconform -ignore-missing-schemas -strict -summary
+
+  # 4 — Checkov: IaC security scan of Terraform
+  checkov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkov (Terraform)
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform
+          framework: terraform
+          soft_fail: true
+
+  # 5 — Trivy: config/misconfiguration scan of the whole repo
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy config scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          exit-code: "0"
+          severity: CRITICAL,HIGH

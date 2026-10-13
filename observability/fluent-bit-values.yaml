@@ -1,0 +1,33 @@
+# Values for the fluent/fluent-bit Helm chart (log aggregation).
+# Install:
+#   helm install fluent-bit fluent/fluent-bit \
+#     -n monitoring -f observability/fluent-bit-values.yaml
+
+serviceAccount:
+  create: true
+
+# Tail all container logs, enrich with Kubernetes metadata, emit to stdout.
+# Swap the [OUTPUT] stanza for CloudWatch / Elasticsearch / Loki in production.
+config:
+  inputs: |
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*.log
+        multiline.parser docker, cri
+        Tag kube.*
+        Mem_Buf_Limit 5MB
+        Skip_Long_Lines On
+
+  filters: |
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        Merge_Log On
+        Keep_Log Off
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude On
+
+  outputs: |
+    [OUTPUT]
+        Name stdout
+        Match *

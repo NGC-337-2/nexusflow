@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/NGC-337-2/nexusflow.git
+    targetRevision: main
+    path: helm-charts/myapp
+    helm:
+      releaseName: myapp
+      # Environment values file tracked in Git (swap for values-dev.yaml / values-staging.yaml)
+      valueFiles:
+        - values-prod.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: myapp-prod
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
